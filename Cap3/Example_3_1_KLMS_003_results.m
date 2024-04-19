@@ -2,14 +2,14 @@
 % Parâmetros do algoritmo KLMS
 mu = 0.75; % Taxa de aprendizado
 gamma_c = 0.9; % Limiar para adicionar um novo ponto ao dicionário
-I_max = 5000; % Tamanho máximo do dicionário
+I_max = 5; % Tamanho máximo do dicionário
 
-N = 1000;
+N = 10;
 
-K = 10000;
+K = 100;
 
 % Sinal de entrada (exemplo)
-signal = randn(1, K); % Sinal aleatório
+d = randn(1, K); % Sinal aleatório
 
 % Função kernel escolhida
 kernel_type = 'polynomial'; % Escolha entre 'cosine', 'sigmoid', 'polynomial', 'gaussian', 'laplacian', ou outras
@@ -21,14 +21,14 @@ l_max = 1;
 I = l_max;
 
 % Inicialização
-x = zeros(length(signal), I_max); % Dicionário
-e = zeros(1, length(signal)); % Erro
-l_0 = ones(1, length(signal)); % Índices iniciais dos pontos no dicionário
-mse = zeros(1, length(signal)); % Para armazenar o MSE em cada iteração
-g = zeros(1, length(signal)); % 
+x = zeros(length(d), I_max); % Dicionário
+e = zeros(1, length(d)); % Erro
+l_0 = ones(1, length(d)); % Índices iniciais dos pontos no dicionário
+mse = zeros(1, length(d)); % Para armazenar o MSE em cada iteração
+g = zeros(1, length(d)); % 
 
 % Algoritmo KLMS
-for k = 1:length(signal)
+for k = 1:length(d)
     if k > 1
 
 %         for l = 1:lmax
@@ -57,7 +57,7 @@ for k = 1:length(signal)
 
 %         kernel_values = calculate_kernel_values(x(:,1:k-1), x(:,k), kernel_type, kernel_param);
 %         g(k) = 2 * mu * sum(repmat(e(1:k-1), 1, size(kernel_values, 1)) .* kernel_values, 1) + 2 * mu * sum(kernel_values);
-        e(k) = signal(k) - g(k-1);
+        e(k) = d(k) - g(k-1);
         
         [max_kernel_value, l_max] = max(abs(kernel_values));
         
@@ -65,10 +65,10 @@ for k = 1:length(signal)
             I = sum(l_0(1:k-1) > 0) + 1;
             if I <= I_max
                 l_0(k+1) = k + 1;
-                x(:,I) = signal(k) * ones(length(signal), 1); % Adiciona x(k) ao dicionário
+                x(:,I) = d(k) * ones(length(d), 1); % Adiciona x(k) ao dicionário
             else
                 [~, l_max] = max(abs(x(:, l_0 == k)));
-                x(:, l_max) = signal(k) * ones(length(signal), 1); % Substitui x(l_max) por x(k) no dicionário
+                x(:, l_max) = d(k) * ones(length(d), 1); % Substitui x(l_max) por x(k) no dicionário
             end
         else
             e(l_max) = e(l_max) + mu * e(k);
@@ -79,20 +79,27 @@ end
 
 % Plot do gráfico MSE em K iterações em dB
 figure;
-plot(1:length(signal), 10*log10(mse));
+plot(1:length(d), 10*log10(mse));
 xlabel('Iterações (k)');
 ylabel('MSE (dB)');
 title('Evolução do MSE ao longo das iterações (dB)');
 
+% Plot do gráfico MSE em K iterações em dB
 figure;
-plot(signal,"g")
+plot(1:length(d), 10*log10(abs(e)));
+xlabel('Iterações (k)');
+ylabel('e(k) (dB)');
+title('Evolução do e(k) ao longo das iterações (dB)');
+
+figure;
+plot(d,"g")
 hold on
 plot(g,"r")
 % plot(y,"b")
 hold off
-title("Signal","Interpreter","latex");
+title("Sinal","Interpreter","latex");
 % legend("d(k)","g(k)","g*x");
-legend("signal(k)","g(k)");
+legend("d(k)","g(k)");
 % legend("d(k)");
 % xlim([0 100]);
 
